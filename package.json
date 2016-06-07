@@ -1,6 +1,7 @@
 {
     "name": "seek-cli",
-    "version": "0.1.0",
+    "version": "0.0.2",
+    "description": "seekJs的命令行工具",
     "bin": {
         "seekjs": "./bin/cli.js",
         "seek": "./bin/cli.js"
