@@ -1,0 +1,37 @@
+<div>
+	<div>
+		<span>出发地</span>
+		<input data-bind="form.dep" />
+	</div>
+	<div>
+		<span>目的地</span>
+		<input data-bind="form.dst" />
+	</div>
+	<div>
+		<span>日期</span>
+		<input type="date" data-bind="form.depDate" />
+	</div>
+
+	<button data-event="query">查询</button>
+
+	<div data-part="queryResult">
+	{if this.form.data.length>0}
+	<table border="1" width="80%">
+		<tr>
+			<th>首发站</th>
+			<th>到站</th>
+			<th>操作</th>
+		</tr>
+		{foreach src=this.form.data}
+		<% var o=item.queryLeftNewDTO; %>
+		<tr>
+			<td>{o.from_station_name}</td>
+			<td>{o.end_station_name}</td>
+			<td>{item.buttonTextInfo}</td>
+		</tr>
+		{/foreach}
+	</table>
+	{/if}
+	</div>
+
+</div>
