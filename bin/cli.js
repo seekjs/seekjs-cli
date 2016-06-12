@@ -1,85 +1,114 @@
 #!/usr/bin/env node
 
-var fs = require("fs");
-var cp = require("child_process");
-var pk = require("../package.json");
+(function(req, exp) {
+    var fs = require("fs");
+    var path = require("path");
+    var cp = require("child_process");
+    var pk = require("../package.json");
+    var isLinuxLike = require("os").type() != "window";
+    var prefix = isLinuxLike ? "sudo " : "";
 
-var args = process.argv.slice(2);
-var cmd = args.shift().toLowerCase();
-var skPath = cp.execSync("echo `npm root -g`/seekjs").toString().trim();
-var viewName;
+    //初始化
+    exp.init = function(){
+        var type = args.type || "base";
+        var project = args.project || "hello-seek";
+        cp.execSync(`cp -r '${skPath}/assets/${type}' './${project}'`);
+        //cp.execSync(`npm install seekjs --save`);
+        console.log("good, project create success!");
+        args.open && cp.execSync(`open ${project}/index.html`);
+    };
 
-//初始化
-if(cmd=="init") {
-    var iniType = args.shift() || "base";
-    if(iniType=="base") {
-        cp.execSync(`cp -r '${skPath}/assets/base/' './'`);
-        cp.execSync(`cp -r '${skPath}/src' './seekjs'`);
-    }
-    console.log("good, project create success!");
-
-//更新
-}else if(cmd=="update") {
-    var isGlobal = args.shift() == "-g";
-
-    //更新seekjs模块
-    if (isGlobal) {
+    //更新
+    exp.update = function(){
         console.log("now is updating, please wait a moment...");
-        cp.exec("sudo npm update -g seekjs", function callback(error, stdout, stderr) {
+        cp.exec(`${prefix}npm update -g seek-cli`, function callback(error, stdout, stderr) {
             console.log(stdout);
         });
+    };
 
-    //更新seekjs框架
+    //重新安装
+    exp.install = function(){
+        console.log("now is reinstalling, please wait a moment...");
+        cp.exec(`${prefix}npm install -g seek-cli`, function callback(error, stdout, stderr) {
+            console.log(stdout);
+        });
+    };
+
+    //增加view
+    exp.addview = function(){
+        viewName = args.shift();
+        var by = args.shift();
+        if (by == "by") {
+            var refView = args.shift();
+            cp.execSync(`cp './js/${refView}.js' './js/${viewName}.js'`);
+            cp.execSync(`cp './css/${refView}.css' './css/${viewName}.css'`);
+            cp.execSync(`cp './templates/${refView}.html' './templates/${viewName}.html'`);
+        } else {
+            cp.execSync(`touch './js/${viewName}.js'`);
+            cp.execSync(`touch './css/${viewName}.css'`);
+            cp.execSync(`touch './templates/${viewName}.html'`);
+        }
+        console.log(`add view ${viewName} success!`);
+    };
+
+    //view改名
+    exp.renameview = function(){
+        viewName = args.shift();
+        var to = args.shift();
+        if (to) {
+            var newName = args.shift();
+            cp.execSync(`mv './js/${viewName}.js' './js/${newName}.js'`);
+            cp.execSync(`mv './css/${viewName}.css' './css/${newName}.css'`);
+            cp.execSync(`mv './templates/${viewName}.html' './templates/${newName}.html'`);
+
+            console.log("rename view ${viewName} to ${newName} success!");
+        } else {
+            console.log("please set a new view name");
+        }
+    };
+
+    //删除view
+    exp.delview = function(){
+        viewName = args.shift();
+        cp.execSync(`rm './js/${viewName}.js'`);
+        cp.execSync(`rm './css/${viewName}.css'`);
+        cp.execSync(`rm './templates/${viewName}.html'`);
+        console.log(`delete view ${viewName} success!`);
+    };
+
+    //查看seekjs版本
+    exp["-v"] = function() {
+        console.log(pk.version);
+    };
+
+
+    var argv = process.argv.slice(2);
+    var cmd = argv.shift();
+    if(cmd){
+        cmd = cmd.toLowerCase();
+        var skPath = path.join(__dirname, "../");
+        console.log("skPath=", skPath);
+        var viewName;
+
+        var args = {};
+        argv.forEach(function (kv) {
+            kv = kv.split("=");
+            var k = kv[0];
+            var v = kv[1];
+            if (kv.length == 2) {
+                args[k] = v;
+            } else {
+                args[k] = true;
+            }
+        });
+
+        if(exp[cmd]){
+            exp[cmd]();
+        } else {
+            console.log(`sorry, no such command '${cmd}'!`);
+        }
     } else {
-        cp.execSync(`rm -rf './seekjs'`);
-        cp.execSync(`cp -r '${skPath}/src' './seekjs'`);
-        console.log("seekjs framework was updated to latest!");
+        console.log(`welcome to use seekjs,\n seekjs current version is ${pk.version}!`);
     }
 
-//增加view
-}else if(cmd=="addview"){
-    viewName = args.shift();
-    var by = args.shift();
-    if(by=="by"){
-        var refView = args.shift();
-        cp.execSync(`cp './js/${refView}.js' './js/${viewName}.js'`);
-        cp.execSync(`cp './css/${refView}.css' './css/${viewName}.css'`);
-        cp.execSync(`cp './templates/${refView}.html' './templates/${viewName}.html'`);
-    }else{
-        cp.execSync(`touch './js/${viewName}.js'`);
-        cp.execSync(`touch './css/${viewName}.css'`);
-        cp.execSync(`touch './templates/${viewName}.html'`);
-    }
-    console.log(`add view ${viewName} success!`);
-
-//view改名
-}else if(cmd=="renameview"){
-    viewName = args.shift();
-    var to = args.shift();
-    if(to) {
-        var newName = args.shift();
-        cp.execSync(`mv './js/${viewName}.js' './js/${newName}.js'`);
-        cp.execSync(`mv './css/${viewName}.css' './css/${newName}.css'`);
-        cp.execSync(`mv './templates/${viewName}.html' './templates/${newName}.html'`);
-
-        console.log("rename view ${viewName} to ${newName} success!");
-    }else{
-        console.log("please set a new view name");
-    }
-
-//删除view
-}else if(cmd=="delview"){
-    viewName = args.shift();
-    cp.execSync(`rm './js/${viewName}.js'`);
-    cp.execSync(`rm './css/${viewName}.css'`);
-    cp.execSync(`rm './templates/${viewName}.html'`);
-    console.log(`delete view ${viewName} success!`);
-
-//查看seekjs版本
-}else if(cmd=="-v"){
-    console.log(pk.version);
-
-}else{
-    var message = `welcome to use seekjs,\n seekjs current version is ${pk.version}!`;
-    console.log(message);
-}
+})(require, exports);
