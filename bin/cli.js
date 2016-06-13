@@ -8,14 +8,29 @@
     var isLinuxLike = require("os").type() != "window";
     var prefix = isLinuxLike ? "sudo " : "";
 
-    //初始化
-    exp.init = function(){
-        var type = args.type || "base";
-        var project = args.project || "hello-seek";
-        cp.execSync(`cp -r '${skPath}/assets/${type}' './${project}'`);
-        //cp.execSync(`npm install seekjs --save`);
-        console.log("good, project create success!");
-        args.open && cp.execSync(`open ${project}/index.html`);
+    var args = {};
+    var argv = process.argv.slice(2);
+    var cmd = argv.shift();
+    var skPath = path.join(__dirname, "..");
+    console.log("skPath=", skPath);
+    var viewName;
+
+    //新建seek项目
+    exp.create = function(){
+        var project = argv[0];
+        if(project) {
+            var type = args.type || "base";
+            /*
+            cp.execSync(`cp -r '${skPath}/assets/${type}' './${project}'`);
+            cp.execSync(`cd ${project}`);
+            cp.execSync(`npm install seekjs`);
+            */
+            cp.execSync(`${skPath}/bin/create.sh '${skPath}/assets/${type}' '${project}'`);
+            console.log("good, project create success!");
+            args.open && cp.execSync(`open ${project}/index.html`);
+        }else{
+            console.log("please enter your project name before!");
+        }
     };
 
     //更新
@@ -82,15 +97,9 @@
     };
 
 
-    var argv = process.argv.slice(2);
-    var cmd = argv.shift();
     if(cmd){
         cmd = cmd.toLowerCase();
-        var skPath = path.join(__dirname, "../");
-        console.log("skPath=", skPath);
-        var viewName;
 
-        var args = {};
         argv.forEach(function (kv) {
             kv = kv.split("=");
             var k = kv[0];
