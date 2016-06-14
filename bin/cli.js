@@ -20,11 +20,6 @@
         var project = argv[0];
         if(project) {
             var type = args.type || "base";
-            /*
-            cp.execSync(`cp -r '${skPath}/assets/${type}' './${project}'`);
-            cp.execSync(`cd ${project}`);
-            cp.execSync(`npm install seekjs`);
-            */
             cp.execSync(`${skPath}/bin/create.sh '${skPath}/assets/${type}' '${project}'`);
             console.log("good, project create success!");
             args.open && cp.execSync(`open ${project}/index.html`);
@@ -33,15 +28,33 @@
         }
     };
 
-    //更新
-    exp.update = function(){
+    //build项目
+    exp.build = function(){
+        //try{
+            var file = path.resolve("./seek.config");
+            var cfg = req(file);
+            var gen = req("../build/gen");
+            gen.init(cfg)/*
+        }catch(e){
+            console.log(e.toString());
+            console.log("please add 'seek.config.js' before!")
+        }*/
+    };
+
+    //发布项目
+    exp.pub = exp.publish = function(){
+
+    };
+
+    //更新脚手架
+    exp.up = exp.update = function(){
         console.log("now is updating, please wait a moment...");
         cp.exec(`${prefix}npm update -g seek-cli`, function callback(error, stdout, stderr) {
             console.log(stdout);
         });
     };
 
-    //重新安装
+    //重新安装脚手架
     exp.install = function(){
         console.log("now is reinstalling, please wait a moment...");
         cp.exec(`${prefix}npm install -g seek-cli`, function callback(error, stdout, stderr) {

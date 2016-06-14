@@ -1,6 +1,9 @@
 seekjs.config({
     ns:{
-        ex: seekjs.resolve("./ex/")
+        ex: seekjs.resolve("./ex/"),
+        js: seekjs.resolve("./js/"),
+        tp: seekjs.resolve("./templates/"),
+        st: seekjs.resolve("./css/")
     },
     alias:{
         service: seekjs.resolve("./ex/service")
@@ -16,13 +19,13 @@ define(function(req,exp,mod){
 	app.viewEx = req("ex.viewEx");
 	
 	app.setPath({
-		js: mod.resolve("./js/"),
-		tp: mod.resolve("./templates/"),
-		st: mod.resolve("./css/")
+		js: "js.",
+		tp: "tp.",
+		st: 'css.'
 	});
 
-	app.usePlugin("sys.ui.dialog");
-	app.usePlugin("sys.ui.mask");
+	//app.usePlugin("sys.ui.dialog");
+	//app.usePlugin("sys.ui.mask");
 
 	app.init("home");
 
