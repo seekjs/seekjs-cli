@@ -14,6 +14,7 @@
     var tp = req("./tp");
     var view = req("./view");
     var ui = req("./ui");
+    var cp = req("child_process");
 
     var jsCode = "";
     var cssCode = "";
@@ -27,10 +28,7 @@
                 var stats = fs.statSync(fullPath);
                 //console.log(fullPath, stats.isDirectory());
                 if (stats.isDirectory()) {
-                    if(/ui/i.test(currentPath)&&/mask|dialog|tip/.test(item)){
-                        cfg.uiList["sys.ui."+item] = fullPath;
-                    }
-                    copyFolder(cfg, fullPath + "/");
+                    /seekjs/i.test(currentPath)==false && copyFolder(cfg, fullPath + "/");
                 } else {
                     if (/^([\w\-@]+)\.(png|gif|jpg|ico)$/.test(item)) {
                         exp.totalCount++;
@@ -60,6 +58,18 @@
         });
     };
 
+    //添加插件
+    var addPLugin = function(cfg){
+        cfg.plugins.forEach(function(plugin){
+            if(/^sys\.ui\.(\w+)$/.test(plugin.name)){
+                cfg.uiList[plugin.name] = `${cfg.sysPath}/ui/${RegExp.$1}/`;
+            }else{
+                var uri = plugin.name.replace(/^sys\./,"").replace(/\./g,"/");
+                cfg.jsList[plugin.name] = `${cfg.sysPath}/${uri}.js`;
+            }
+        });
+    };
+
     //保存文件
     exp.saveFile = function(file, code){
         fs.writeFileSync(`${global.config.output}/${file}`, code);
@@ -76,13 +86,12 @@
         var pkg = req(path.resolve("./package.json"));
         cfg.version = +pkg.version.replace(/\./g,"");
         cfg.assetsPath = path.join(__dirname,"../assets");
-        cfg.sysPath = path.resolve("./node_modules/seekjs/");
+        cfg.sysPath = path.resolve(cfg.sysPath||"./node_modules/seekjs");
         exp.totalCount = 0;
         copyFolder(cfg, cfg.staticPath);
+        addPLugin(cfg);
         global.config = cfg;
-        console.log(cfg.viewList);
-
-
+        //console.log(cfg.viewList);
 
         var startTime = Date.now();
         fs2.rmdir(cfg.output);
@@ -116,14 +125,22 @@
                 cssCode += css.getCode(cssFile);
             });
 
+            //jsCode = exp.compress(jsCode);
             exp.saveFile("app.js", jsCode);
             exp.saveFile("app.css", cssCode);
             pic.copyUseImg();
+            var appJs = `${global.config.output}/app.js`;
+            console.log(`uglifyjs ${appJs} -o ${appJs}`);
+            try{
+                cp.exec(`uglifyjs '${appJs}' -m -o '${appJs}'`);
+            }catch(e){
+                console.log("please install uglify-js if you'll compress code!");
+            }
             var endTime = Date.now();
             var time = endTime - startTime;
             console.log("merge complete, use time "+time+"ms");
 
-            console.log(cfg);
+            //console.log(cfg);
         },100);
     };
 
@@ -152,5 +169,6 @@
         var code = js.getCode("root.main", file);
         return code.replace(/seekjs\.config\([\s\S]+define/, 'seekjs.define');
     };
+
 
 })(require, exports);

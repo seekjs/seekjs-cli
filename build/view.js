@@ -19,7 +19,7 @@
         var o = {};
         o.js = js.getCode(ns, jsFile, function(code){
             if(code.indexOf('exp.cssFile = "none"')==-1){
-                o.css = css.getCode(cssFile);
+                //o.css = css.getCode(cssFile);
                 code = exp.addExp(code, "cssFile", '"none"');
             }
             if(code.indexOf('exp.templateFile = "none"')==-1) {

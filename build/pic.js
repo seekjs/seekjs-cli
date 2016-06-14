@@ -30,7 +30,7 @@
 
     //复制文件
     var copyFile = function(source, destination){
-        console.log(cfg.staticPath+source,cfg.output+"/"+destination);
+        //console.log(cfg.staticPath+source,cfg.output+"/"+destination);
         var fileReadStream = fs.createReadStream(cfg.staticPath+source);
         var fileWriteStream = fs.createWriteStream(cfg.output+"/"+destination);
         fileReadStream.pipe(fileWriteStream);
@@ -77,7 +77,7 @@
 
     //复制使用到的图片
     exp.copyUseImg = function(){
-        console.log("useImgs=",exp.useImgs);
+        //console.log("useImgs=",exp.useImgs);
         for(var file in exp.useImgs){
             exp.useCount++;
             copyFile(file, exp.useImgs[file]);

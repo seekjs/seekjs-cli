@@ -16,7 +16,7 @@
         o.js = js.getCode(item, path + "/ui.min.js", function(code){
             return view.addExp(code, "cssFile", '"none"');
         });
-        o.css = css.getCode(path + "/ui.css");
+        //o.css = css.getCode(path + "/ui.css");
         return o;
     };
 

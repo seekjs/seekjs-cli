@@ -1,14 +1,17 @@
 {
-    "name": "seek-cli",
-    "version": "0.2.2",
-    "description": "seekJs的命令行工具",
-    "bin": {
-        "seekjs": "./bin/cli.js",
-        "seek": "./bin/cli.js"
-    },
-    "main": "bin/main.js",
-    "author": {
-        "name": "Li",
-        "email": "61114579@qq.com"
-    }
+  "name": "seek-cli",
+  "version": "0.2.3",
+  "description": "seekJs的命令行工具",
+  "bin": {
+    "seekjs": "./bin/cli.js",
+    "seek": "./bin/cli.js"
+  },
+  "main": "bin/main.js",
+  "author": {
+    "name": "Li",
+    "email": "61114579@qq.com"
+  },
+  "dependencies": {
+
+  }
 }
