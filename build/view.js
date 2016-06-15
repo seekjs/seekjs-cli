@@ -12,12 +12,12 @@
 
     //解析View
     exp.getCode = function(ns, viewName){
-        var jsFile = global.config.staticPath + "js/"+viewName+".js";
-        var cssFile = global.config.staticPath + "css/"+viewName+".css";
-        var templateFile = global.config.staticPath + "templates/"+viewName+".html";
+        var jsFile = `${global.config.rootPath}/js/${viewName}.js`;
+        var cssFile = `${global.config.rootPath}/css/${viewName}.css`;
+        var templateFile = `${global.config.rootPath}/templates/${viewName}.html`;
 
         var o = {};
-        o.js = js.getCode(ns, jsFile, function(code){
+        o.js = js.getJs(ns, jsFile, function(code){
             if(code.indexOf('exp.cssFile = "none"')==-1){
                 //o.css = css.getCode(cssFile);
                 code = exp.addExp(code, "cssFile", '"none"');

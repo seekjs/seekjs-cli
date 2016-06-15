@@ -8,17 +8,20 @@
     var fs = req("fs");
     var pic = req("./pic");
 
-    //添加CSS文件
-    exp.getCode = function(file){
+    //获取CSS代码
+    exp.getCss = function(file){
         var code = fs.readFileSync(file).toString();
-        code = code.replace(/url\s*\([\"\']?(.+?)[\"\']?\)\s*/ig, function(_,img){
+        return exp.getCode(file, code);
+    };
+
+    //获取代码
+    exp.getCode = function(file, code){
+        return code.replace(/url\s*\([\"\']?(.+?)[\"\']?\)\s*/ig, function(_,img){
             if(/^data:image\//.test(img)){
                 return _;
             }
-            var resolvePath = file.replace(global.config.staticPath,"/");
-            return "url(" + pic.getShortImg(img, resolvePath) + ")";
+            return "url(" + pic.getShortImg(img,file) + ")";
         });
-        return code;
     };
 
 })(require, exports);

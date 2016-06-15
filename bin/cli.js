@@ -34,7 +34,8 @@
             var file = path.resolve("./seek.config");
             var cfg = req(file);
             var gen = req("../build/gen");
-            gen.init(cfg)/*
+            args.isCompress = !args.mo;
+            gen.init(cfg, args);/*
         }catch(e){
             console.log(e.toString());
             console.log("please add 'seek.config.js' before!")

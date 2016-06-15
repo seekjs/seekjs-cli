@@ -47,7 +47,7 @@
 
         //临时,view转part
         code = code.replace(/<div data\-view=\"(.+?)\" data\-view2part=\"true\"><\/div>/g, function(_,viewUri){
-            var fileCode = fs.readFileSync(global.config.staticPath+"templates/"+viewUri+".html");
+            var fileCode = fs.readFileSync(`${global.config.rootPath}/templates/${viewUri}.html`);
             return `<div data-part="${viewUri}">${fileCode}</div>`;
         });
         return code;
