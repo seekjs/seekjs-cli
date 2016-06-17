@@ -104,16 +104,21 @@
     var addPlugin = function(){
         cfg.plugins = (cfg.plugins||[]).concat([
             { name: "sys.lib.move", count:1, des: "good" },
+            {name: "sys.lib.highcharts"},
             { name: "sys.ui.dialog" },
             { name: "sys.ui.mask" },
             { name: "sys.ui.tip" }
         ]);
         cfg.plugins.forEach(function(plugin){
+            if(typeof plugin=="string"){
+                plugin = {name: plugin};
+            }
             if(/^sys\.ui\.(\w+)$/.test(plugin.name)){
                 cfg.uiList[plugin.name] = `${cfg.sysPath}/ui/${RegExp.$1}`;
                 eachFolder(cfg.uiList[plugin.name] + "/", true);
             }else{
                 var uri = plugin.name.replace(/^sys\./,"").replace(/\./g,"/");
+                console.log(plugin.name);
                 cfg.jsList[plugin.name] = `${cfg.sysPath}/${uri}.js`;
             }
         });
