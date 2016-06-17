@@ -21,7 +21,7 @@
         code = code.replace(/define\s*\(\s*([^\"])/g, "define(\""+ns+"\",$1");              //添加ID标记
 
         //替换模块相对路径
-        code = code.replace(/module\.resolve\(\"(.+\.(?:gif|jpg|png))\"\)/, function(_,img){
+        code = code.replace(/(?:module|mod)\.resolve\(\"(.+\.(?:gif|jpg|png))\"\)/g, function(_,img){
             img = pic.getShortImg(img, file);
             return `"${img}"`;
         });
