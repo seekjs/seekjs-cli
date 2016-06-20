@@ -104,7 +104,6 @@
     var addPlugin = function(){
         cfg.plugins = (cfg.plugins||[]).concat([
             { name: "sys.lib.move", count:1, des: "good" },
-            {name: "sys.lib.highcharts"},
             { name: "sys.ui.dialog" },
             { name: "sys.ui.mask" },
             { name: "sys.ui.tip" }
