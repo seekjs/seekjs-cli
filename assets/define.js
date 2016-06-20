@@ -46,7 +46,7 @@
         var mod = modules[id] = {};
         mod.factory = factory;
     };
-    seekjs.define.amd = false;
+    seekjs.define.amd = true;
     seekjs.define.cmd = true;
 
     //获取最后一个script对象

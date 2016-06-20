@@ -46,14 +46,26 @@
     //Step2 获取短路径
     var getShortcut = function(){
         entryCode = fs.readFileSync(cfg.entry.path).toString();
-        entryCode = entryCode.replace(/seekjs\.config\([\s\S]+define/, function(_, code){
-            //先写死
-            cfg.shortcut = {
-                plugins : "plugs"//,
-                //"plugs.service": "service"
-            };
-            return 'define';
-        });
+        entryCode = entryCode.replace(/^[\s\S]*?define\s*\(/, "define(");
+        //console.log(entryCode);
+
+        global.seekjs = {
+            config: function(json){
+                var newJson = {};
+                for(var k in json.ns){
+                    newJson[json.ns[k]] = k;
+                }
+                cfg.shortcut = newJson;
+                console.log(cfg.shortcut);
+            },
+            resolve: function(jsPath){
+                return jsPath.replace(/^\W+/,"").replace(/\W+$/,"").replace(/\//g,".");
+            }
+        };
+        global.define = function(){};
+
+        var entryFile = path.resolve(cfg.entry.path);
+        require(entryFile);
     };
 
     //Step3 遍历文件夹
