@@ -17,7 +17,12 @@
 
     //获取代码
     exp.getCode = function(ns, file, code, callback){
-        code = code.replace(/define\s*\(/g, "seekjs.define(").replace(/window\.define/g,"window.seekjs.define").replace(/typeof define/g,"typeof seekjs.define").replace(/([^\.])define\.amd/g,"$1seekjs.define.amd").replace(/([^\.])define\.cmd/g,"$1seekjs.define.cmd");              //define换成seekjs.define
+        code = code.replace(/define\s*\(/g, "seekjs.define(")
+            .replace(/window\.define/g,"window.seekjs.define")
+            .replace(/typeof define/g,"typeof seekjs.define")
+            .replace(/typeof\s*\(\s*define\s*\)/g,"typeof(seekjs.define)")
+            .replace(/([^\.])define\.amd/g,"$1seekjs.define.amd")
+            .replace(/([^\.])define\.cmd/g,"$1seekjs.define.cmd");              //define换成seekjs.define
         code = code.replace(/define\s*\(\s*([^\"])/g, "define(\""+ns+"\",$1");              //添加ID标记
 
         //替换模块相对路径
