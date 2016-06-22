@@ -29,7 +29,9 @@
         indexCode = fs.readFileSync(indexFile).toString();
         //替换JS地址
         indexCode = indexCode.replace(/\s*src\s*=\s*\"(.*?)seek\.js\"\s*/i, function(_, sysPath){
-            cfg.sysPath = sysPath && cfg.rootPath + "/" + sysPath.replace(/\/$/,"") || "";
+            if(!cfg.sysPath) {
+                cfg.sysPath = sysPath && cfg.rootPath + "/" + sysPath.replace(/\/$/, "") || "";
+            }
             return ` src="app.js?${global.config.version}" `;
         });
         //获取入口文件
@@ -55,6 +57,9 @@
                 for(var k in json.ns){
                     newJson[json.ns[k]] = k;
                 }
+                for(var k2 in json.alias){
+                    newJson[json.alias[k2]] = k2;
+                }
                 cfg.shortcut = newJson;
                 console.log(cfg.shortcut);
             },
@@ -75,7 +80,9 @@
             var fullPath = currentPath + item;
             var stats = fs.statSync(fullPath);
             if (stats.isDirectory()) {
-                /seekjs/i.test(currentPath)==false && eachFolder(fullPath + "/", isFilterJs);
+                if(/seekjs/i.test(currentPath)==false || item=="core"){
+                    eachFolder(fullPath + "/", isFilterJs);
+                }
             } else {
                 if (/^([\w\-@]+)\.(png|gif|jpg|ico)$/.test(item)) {
                     pic.totalCount++;
@@ -88,15 +95,19 @@
                     var ns;
                     if(currentPath==cfg.rootPath+"/"){
                         ns = "root";
-                    }else if(currentPath==cfg.sysPath+"/"){
+                    }else if(currentPath==cfg.sysPath+"/core/"){
                         ns = "sys";
                     }else{
                         ns = currentPath.replace(cfg.rootPath, "").replace(/^\W+/,"").replace(/\W+$/,"").replace(/\//g,".");
                     }
-                    ns = cfg.shortcut[ns] || ns;
                     var mid = ns + "." + fileName;
-                    mid = cfg.shortcut[mid] || mid;
-                    if(!expects[mid]) {
+                    if (cfg.shortcut[mid]) {
+                        mid = cfg.shortcut[mid];
+                    } else {
+                        ns = cfg.shortcut[ns] || ns;
+                        mid = ns + "." + fileName;
+                    }
+                    if (!expects[ns+".*"] && !expects[mid]) {
                         if (ns == "js") {
                             cfg.viewList[mid] = fileName;
                         } else {
@@ -116,6 +127,7 @@
     var addPlugin = function(){
         cfg.plugins = (cfg.plugins||[]).concat([
             { name: "sys.lib.move", count:1, des: "good" },
+            { name: "sys.lib.zepto"},
             { name: "sys.ui.dialog" },
             { name: "sys.ui.mask" },
             { name: "sys.ui.tip" }
@@ -130,7 +142,8 @@
             }else{
                 var uri = plugin.name.replace(/^sys\./,"").replace(/\./g,"/");
                 console.log(plugin.name);
-                cfg.jsList[plugin.name] = `${cfg.sysPath}/${uri}.js`;
+                var mid = cfg.shortcut[plugin.name] || plugin.name;
+                cfg.jsList[mid] = `${cfg.sysPath}/${uri}.js`;
             }
         });
     };
@@ -151,6 +164,7 @@
     //Step6 更新入口文件
     var upEntry = function(){
         jsCode += js.getJs("", `${cfg.assetsPath}/define.js`);
+        jsCode += js.getJs("sys.template", `${cfg.assetsPath}/template.js`);
         jsCode += js.getCode("root.main", cfg.entry.path, entryCode);
     };
 
@@ -212,21 +226,7 @@
         cfg.assetsPath = path.join(__dirname,"../assets");
 
         cfg.expects = (cfg.expects||[]).concat([
-            "sys.ajax",
-            "sys.animate",
-            "sys.compatible",
-            "sys.currency",
-            "sys.drag",
-            "sys.history",
-            "sys.promise",
-            //"sys.query_new",
-            "sys.session",
-            "sys.store",
-            //"sys.grid",
-            "sys.grid_bak",
-            "sys.grid_ui",
-            "sys.task"//,
-            //"sys.template"
+            "sys.template"
         ]);
         cfg.expects.forEach(function(item){
             expects[item] = true;

@@ -31,6 +31,19 @@
             return `"${img}"`;
         });
 
+        //别名处理
+        code = code.replace(/(?:req|require)\([\"\'](.+?)[\"\']\)/g, function(_, mid){
+            mid = global.config.shortcut[mid] || mid;
+            return `req("${mid}")`;
+        });
+
+        //单独处理模板
+        /*
+        if(ns=="sys.app"){
+            code = code.replace('req("sys.template")', '{}');
+        }
+        */
+
         //处理全局事件
         var buildJsBefore = global.config.buildJsBefore;
         if(buildJsBefore){
