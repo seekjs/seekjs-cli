@@ -12,7 +12,7 @@
     var argv = process.argv.slice(2);
     var cmd = argv.shift();
     var skPath = path.join(__dirname, "..");
-    console.log("skPath=", skPath);
+    //console.log("skPath=", skPath);
     var viewName;
 
     //新建seek项目
@@ -30,22 +30,18 @@
 
     //build项目
     exp.build = function(){
-        //try{
+        try{
             var file = path.resolve("./seek.config");
             var cfg = req(file);
             var gen = req("../build/gen");
             args.isCompress = !args.mo;
-            gen.init(cfg, args);/*
+            gen.init(cfg, args);
         }catch(e){
             console.log(e.toString());
             console.log("please add 'seek.config.js' before!")
-        }*/
+        }
     };
 
-    //发布项目
-    exp.pub = exp.publish = function(){
-
-    };
 
     //更新脚手架
     exp.up = exp.update = function(){
