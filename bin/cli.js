@@ -78,12 +78,12 @@
 
     //view改名
     exp.renameview = function(){
-        viewName = args.shift();
-        var to = args.shift();
+        viewName = argv.shift();
+        var to = argv.shift();
         if (to) {
-            var newName = args.shift();
+            var newName = argv.shift();
             cp.execSync(`mv './js/${viewName}.js' './js/${newName}.js'`);
-            cp.execSync(`mv './css/${viewName}.css' './css/${newName}.css'`);
+            /*fs.ex  */cp.execSync(`mv './css/${viewName}.css' './css/${newName}.css'`);
             cp.execSync(`mv './templates/${viewName}.html' './templates/${newName}.html'`);
 
             console.log("rename view ${viewName} to ${newName} success!");
