@@ -37,7 +37,7 @@
             args.isCompress = !args.mo;
             gen.init(cfg, args);
         }catch(e){
-            console.log(e.toString());
+            console.log(e);
             console.log("please add 'seek.config.js' before!")
         }
     };

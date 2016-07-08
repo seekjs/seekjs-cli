@@ -163,6 +163,7 @@
 
     //Step6 更新入口文件
     var upEntry = function(){
+        console.log(`${cfg.assetsPath}/define.js`);
         jsCode += js.getJs("", `${cfg.assetsPath}/define.js`);
         jsCode += js.getJs("sys.template", `${cfg.assetsPath}/template.js`);
         jsCode += js.getCode("root.main", cfg.entry.path, entryCode);
@@ -220,6 +221,7 @@
         cfg.viewList = {};
         cfg.uiList = {};
         cfg.cssList = [];
+        cfg.shortcut = {};
         cfg.re = new RegExp("^"+cfg.rootPath.replace(/\./g,"\\.").replace(/\//g,"\\/"));
         cfg.version = +pkg.version.replace(/\./g,"");
         cfg.index = cfg.index || "index.html";
