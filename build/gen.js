@@ -22,6 +22,9 @@
     var entryCode = "";
     var cfg = {};
     var expects = {};
+    var includes = {};
+    var reExpects;
+    var reIncludes;
 
     //Step1 - 获取系统路径和入口文件
     var getSysPathAndEntryFile = function() {
@@ -52,16 +55,19 @@
         //console.log(entryCode);
 
         global.seekjs = {
-            config: function(json){
-                var newJson = {};
-                for(var k in json.ns){
-                    newJson[json.ns[k]] = k;
+            config: function(config){
+                cfg.shortcut = {};
+                cfg.shortPaths = [];
+                for(var nk in config.ns){
+                    cfg.shortcut[config.ns[nk]] = nk;
                 }
-                for(var k2 in json.alias){
-                    newJson[json.alias[k2]] = k2;
+                for(var ak in config.alias){
+                    cfg.shortcut[config.alias[ak]] = ak;
                 }
-                cfg.shortcut = newJson;
-                console.log(cfg.shortcut);
+                for(var pk in config.paths){
+                    cfg.shortPaths.push(pk);
+                }
+                //console.log("shortcut=",cfg.shortcut, "\n\n");
             },
             resolve: function(jsPath){
                 return jsPath.replace(/^\W+/,"").replace(/\W+$/,"").replace(/\//g,".");
@@ -81,7 +87,12 @@
             var stats = fs.statSync(fullPath);
             if (stats.isDirectory()) {
                 if(/seekjs/i.test(currentPath)==false || item=="core"){
-                    eachFolder(fullPath + "/", isFilterJs);
+                    //新增一层判断
+                    var cpath = fullPath.replace(cfg.rootPath+"/", "")+"/";
+
+                    if(reExpects.test(cpath)==false || reIncludes.test(cpath)==true) {
+                        eachFolder(fullPath + "/", isFilterJs);
+                    }
                 }
             } else {
                 if (/^([\w\-@]+)\.(png|gif|jpg|ico)$/.test(item)) {
@@ -93,23 +104,35 @@
                 } else if (/^(.+)\.js$/i.test(item) && !isFilterJs) {
                     var fileName = RegExp.$1;
                     var ns;
-                    if(currentPath==cfg.rootPath+"/"){
-                        ns = "root";
-                    }else if(currentPath==cfg.sysPath+"/core/"){
-                        ns = "sys";
+                    var mid;
+                    var rootPath = cfg.rootPath+"/";
+                    var tmpPath = currentPath.replace(rootPath, "");
+                    var tmpKey = tmpPath.split("/")[0];
+                    if(tmpKey && cfg.shortPaths.includes(tmpKey)) {
+                        mid = tmpPath.replace(/\/$/,"") + "/" + fileName;
+                        //console.log(tmpKey, mid);
                     }else{
-                        ns = currentPath.replace(cfg.rootPath, "").replace(/^\W+/,"").replace(/\W+$/,"").replace(/\//g,".");
-                    }
-                    var mid = ns + "." + fileName;
-                    if (cfg.shortcut[mid]) {
-                        mid = cfg.shortcut[mid];
-                    } else {
-                        ns = cfg.shortcut[ns] || ns;
+                        if (currentPath == rootPath) {
+                            ns = "root";
+                        } else if (currentPath == cfg.sysPath + "/core/") {
+                            ns = "sys";
+                        } else {
+                            ns = currentPath.replace(cfg.rootPath, "").replace(/^\W+/, "").replace(/\W+$/, "").replace(/\//g, ".");
+                        }
                         mid = ns + "." + fileName;
+                        if (cfg.shortcut[mid]) {
+                            mid = cfg.shortcut[mid];
+                        } else {
+                            ns = cfg.shortcut[ns] || ns;
+                            mid = ns + "." + fileName;
+                        }
                     }
-                    if (!expects[ns+".*"] && !expects[mid]) {
-                        if (ns == "js") {
-                            cfg.viewList[mid] = fileName;
+                    var isExpects = cfg.expects[ns+".*"] || cfg.expects[mid];
+                    var isIncludes = cfg.includes[ns+".*"] || cfg.includes[mid];
+                    if (!isExpects || isIncludes) {
+                        if (ns == "js" || /(.+?)\/js\//.test(currentPath)) { //此处先写死
+                            var viewPath = ns=="js" ? global.config.rootPath : RegExp.$1;
+                            cfg.viewList[mid] = [viewPath, fileName];
                         } else {
                             if (item != "main.js" && item != "define.js" && item != "seek.js" && item != "genui.js") {
                                 cfg.jsList[mid] = fullPath;
@@ -141,7 +164,7 @@
                 eachFolder(cfg.uiList[plugin.name] + "/", true);
             }else{
                 var uri = plugin.name.replace(/^sys\./,"").replace(/\./g,"/");
-                console.log(plugin.name);
+                //console.log(plugin.name);
                 var mid = cfg.shortcut[plugin.name] || plugin.name;
                 cfg.jsList[mid] = `${cfg.sysPath}/${uri}.js`;
             }
@@ -163,7 +186,7 @@
 
     //Step6 更新入口文件
     var upEntry = function(){
-        console.log(`${cfg.assetsPath}/define.js`);
+        //console.log(`${cfg.assetsPath}/define.js`);
         jsCode += js.getJs("", `${cfg.assetsPath}/define.js`);
         jsCode += js.getJs("sys.template", `${cfg.assetsPath}/template.js`);
         jsCode += js.getCode("root.main", cfg.entry.path, entryCode);
@@ -178,7 +201,8 @@
             jsCode += ui.getCode(uiItem, cfg.uiList[uiItem]).js;
         }
         for(var viewItem in cfg.viewList) {
-            jsCode += view.getCode(viewItem, cfg.viewList[viewItem]).js;
+            var [viewPath, viewName] = cfg.viewList[viewItem];
+            jsCode += view.getCode(viewItem, viewPath, viewName).js;
         }
     };
 
@@ -194,6 +218,8 @@
         saveFile("index.html", indexCode);
         saveFile("app.js", jsCode);
         saveFile("app.css", cssCode);
+        var fav = `${global.config.rootPath}/favicon.ico`;
+        fs.existsSync(fav) && cp.execSync(`cp ${fav} ${global.config.output}/favicon.ico`);
     };
 
     //保存文件
@@ -210,6 +236,17 @@
         }catch(e){
             console.log("please install uglify-js if you'll compress code!");
         }
+    };
+
+    var getRe = function(arr){
+        var re = [];
+        (arr||[]).forEach(function(item){
+            item = item.replace(/\./g,"\\.").replace(/\//g,"\\/").replace(/\*/g,".*");
+            re.push(item);
+        });
+        re = new RegExp("^(" + (re.join("|")||".*") + ")", "i");
+        //console.log(re);
+        return re;
     };
 
     //初始化
@@ -234,6 +271,21 @@
             expects[item] = true;
         });
 
+        cfg.includes = cfg.includes || [];
+        if(typeof cfg.includes=="function"){
+            cfg.includes = cfg.includes({
+                getCode: function(file){
+                    return fs.readFileSync(file).toString().trim();
+                }
+            });
+        }
+        cfg.includes.forEach(function(item){
+            includes[item] = true;
+        });
+
+        reExpects = getRe(cfg.expects);
+        reIncludes = getRe(cfg.includes);
+
         pic.init();
         getSysPathAndEntryFile();
         getShortcut();
@@ -243,8 +295,14 @@
         upEntry();
         upJs();
         upCss();
-        args.tip && console.log("\ncfg=", cfg, "\n\nshortImgs=", pic.shortImgs, "\n");
-
+        //args.tip && console.log("\ncfg=", cfg, "\n\nshortImgs=", pic.shortImgs, "\n");
+        if(args.tip){
+            args.jsList && console.log("\njsList=", cfg.jsList);
+            args.viewList && console.log("\nviewList=", cfg.viewList);
+            args.uiList && console.log("\nuiList=", cfg.uiList);
+            args.cssList && console.log("\ncssList=", cfg.cssList);
+            args.shortImgs && console.log("\nshortImgs=", pic.shortImgs);
+        }
         var startTime = Date.now();
         fs2.rmdir(cfg.output);
         setTimeout(function(){

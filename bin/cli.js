@@ -30,16 +30,17 @@
 
     //build项目
     exp.build = function(){
-        try{
+        //try{
             var file = path.resolve("./seek.config");
             var cfg = req(file);
             var gen = req("../build/gen");
             args.isCompress = !args.mo;
-            gen.init(cfg, args);
+            gen.init(cfg, args);/*
         }catch(e){
             console.log(e);
+            console.log(e.stacks);
             console.log("please add 'seek.config.js' before!")
-        }
+        }*/
     };
 
 

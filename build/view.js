@@ -11,10 +11,10 @@
     var tp = req("./tp");
 
     //解析View
-    exp.getCode = function(ns, viewName){
-        var jsFile = `${global.config.rootPath}/js/${viewName}.js`;
-        var cssFile = `${global.config.rootPath}/css/${viewName}.css`;
-        var templateFile = `${global.config.rootPath}/templates/${viewName}.html`;
+    exp.getCode = function(ns, viewPath, viewName){
+        var jsFile = `${viewPath}/js/${viewName}.js`;
+        var cssFile = `${viewPath}/css/${viewName}.css`;
+        var templateFile = `${viewPath}/templates/${viewName}.html`;
 
         var o = {};
         o.js = js.getJs(ns, jsFile, function(code){
