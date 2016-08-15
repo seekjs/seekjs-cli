@@ -47,7 +47,7 @@
         //处理全局事件
         var buildJsBefore = global.config.buildJsBefore;
         if(buildJsBefore){
-            code = buildJsBefore(ns, code);
+            code = buildJsBefore(global.args, {mid:ns, code:code});
         }
 
         //处理临时回调

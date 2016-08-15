@@ -5,14 +5,15 @@
     var path = require("path");
     var cp = require("child_process");
     var pk = require("../package.json");
+    var {getArgs,log,end} = require("./utils");
     var isLinuxLike = require("os").type() != "window";
     var prefix = isLinuxLike ? "sudo " : "";
 
-    var args = {};
     var argv = process.argv.slice(2);
-    var cmd = argv.shift();
+    var args = getArgs(argv);
+    args.cmd = args.more.shift();
     var skPath = path.join(__dirname, "..");
-    //console.log("skPath=", skPath);
+    //log("skPath=", skPath);
     var viewName;
 
     //新建seek项目
@@ -21,10 +22,10 @@
         if(project) {
             var type = args.type || "base";
             cp.execSync(`${skPath}/bin/create.sh '${skPath}/assets/${type}' '${project}'`);
-            console.log("good, project create success!");
+            log("good, project create success!");
             args.open && cp.execSync(`open ${project}/index.html`);
         }else{
-            console.log("please enter your project name before!");
+            log("please enter your project name before!");
         }
     };
 
@@ -34,29 +35,33 @@
             var file = path.resolve("./seek.config");
             var cfg = req(file);
             var gen = req("../build/gen");
-            args.isCompress = !args.mo;
+            args.env = args.more.shift();
+            log(args);
+            if(!args.env) {
+                end("please enter a env!");
+            }
             gen.init(cfg, args);/*
         }catch(e){
-            console.log(e);
-            console.log(e.stacks);
-            console.log("please add 'seek.config.js' before!")
+            log(e);
+            log(e.stacks);
+            log("please add 'seek.config.js' before!")
         }*/
     };
 
 
     //更新脚手架
     exp.up = exp.update = function(){
-        console.log("now is updating, please wait a moment...");
+        log("now is updating, please wait a moment...");
         cp.exec(`${prefix}npm update -g seek-cli`, function callback(error, stdout, stderr) {
-            console.log(stdout);
+            log(stdout);
         });
     };
 
     //重新安装脚手架
     exp.install = function(){
-        console.log("now is reinstalling, please wait a moment...");
+        log("now is reinstalling, please wait a moment...");
         cp.exec(`${prefix}npm install -g seek-cli`, function callback(error, stdout, stderr) {
-            console.log(stdout);
+            log(stdout);
         });
     };
 
@@ -74,7 +79,7 @@
             cp.execSync(`touch './css/${viewName}.css'`);
             cp.execSync(`touch './templates/${viewName}.html'`);
         }
-        console.log(`add view ${viewName} success!`);
+        log(`add view ${viewName} success!`);
     };
 
     //view改名
@@ -87,9 +92,9 @@
             /*fs.ex  */cp.execSync(`mv './css/${viewName}.css' './css/${newName}.css'`);
             cp.execSync(`mv './templates/${viewName}.html' './templates/${newName}.html'`);
 
-            console.log("rename view ${viewName} to ${newName} success!");
+            log("rename view ${viewName} to ${newName} success!");
         } else {
-            console.log("please set a new view name");
+            log("please set a new view name");
         }
     };
 
@@ -99,36 +104,24 @@
         cp.execSync(`rm './js/${viewName}.js'`);
         cp.execSync(`rm './css/${viewName}.css'`);
         cp.execSync(`rm './templates/${viewName}.html'`);
-        console.log(`delete view ${viewName} success!`);
+        log(`delete view ${viewName} success!`);
     };
 
     //查看seekjs版本
     exp["-v"] = function() {
-        console.log(pk.version);
+        log(pk.version);
     };
 
 
-    if(cmd){
-        cmd = cmd.toLowerCase();
-
-        argv.forEach(function (kv) {
-            kv = kv.split("=");
-            var k = kv[0];
-            var v = kv[1];
-            if (kv.length == 2) {
-                args[k] = v;
-            } else {
-                args[k] = true;
-            }
-        });
-
-        if(exp[cmd]){
-            exp[cmd]();
+    if(args.cmd){
+        args.cmd = args.cmd.toLowerCase();
+        if(exp[args.cmd]){
+            exp[args.cmd]();
         } else {
-            console.log(`sorry, no such command '${cmd}'!`);
+            log(`sorry, no such command '${args.cmd}'!`);
         }
     } else {
-        console.log(`welcome to use seekjs,\n seekjs current version is ${pk.version}!`);
+        log(`welcome to use seekjs,\n seekjs current version is ${pk.version}!`);
     }
 
 })(require, exports);

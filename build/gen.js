@@ -254,6 +254,7 @@
         var pkg = req(path.resolve("./package.json"));
 
         cfg = global.config = _cfg;
+              global.args = args;
         cfg.jsList = {};
         cfg.viewList = {};
         cfg.uiList = {};
@@ -309,7 +310,7 @@
             fs.mkdirSync(cfg.output);
             pic.copyUseImg();
             saveApp();
-            args.isCompress && compressApp();
+            !args.noCompress && compressApp();
 
             var endTime = Date.now();
             var time = endTime - startTime;
