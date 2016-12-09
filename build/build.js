@@ -104,8 +104,9 @@ var saveJs = function () {
         code += mod.code.replace(/(define\()\s*(function|\{)/, `$1"${mod.mid}", $2`);
     });
     code += ui.getJsCode(cfg.uiList);
+    console.log({cfg});
     if(!cfg.noUglify) {
-        code = require("uglify-js").minify(code, {
+        code = require(`uglify-js`).minify(code, {
             mangle: false,
             fromString: true
         }).code;
