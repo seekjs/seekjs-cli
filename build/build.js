@@ -104,10 +104,12 @@ var saveJs = function () {
         code += mod.code.replace(/(define\()\s*(function|\{)/, `$1"${mod.mid}", $2`);
     });
     code += ui.getJsCode(cfg.uiList);
-    code = require("uglify-js").minify(code, {
-        mangle: false,
-        fromString: true
-    }).code;
+    if(!cfg.noUglify) {
+        code = require("uglify-js").minify(code, {
+            mangle: false,
+            fromString: true
+        }).code;
+    }
     saveFile("app.js", code);
     //compressJs();
 };
