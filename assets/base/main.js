@@ -1,12 +1,12 @@
 seekjs.config({
     ns:{
-        ex: seekjs.resolve("./ex/"),
+        ex: seekjs.resolve("./utils/"),
         js: seekjs.resolve("./js/"),
         tp: seekjs.resolve("./templates/"),
         st: seekjs.resolve("./css/")
     },
     alias:{
-        service: seekjs.resolve("./ex/service")
+        service: seekjs.resolve("./utils/service")
     }
 });
 

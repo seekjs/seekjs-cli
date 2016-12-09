@@ -34,7 +34,7 @@
         //try{
             var file = path.resolve("./seek.config");
             var cfg = req(file);
-            var gen = req("../build/gen");
+            var gen = req("../build/build");
             args.env = args.more.shift();
             log(args);
             if(!args.env) {
@@ -89,7 +89,7 @@
         if (to) {
             var newName = argv.shift();
             cp.execSync(`mv './js/${viewName}.js' './js/${newName}.js'`);
-            /*fs.ex  */cp.execSync(`mv './css/${viewName}.css' './css/${newName}.css'`);
+            /*fs.utils  */cp.execSync(`mv './css/${viewName}.css' './css/${newName}.css'`);
             cp.execSync(`mv './templates/${viewName}.html' './templates/${newName}.html'`);
 
             log("rename view ${viewName} to ${newName} success!");

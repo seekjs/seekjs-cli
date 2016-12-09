@@ -34,20 +34,21 @@
         }
         return arr[0];
     };
-    /*
+
     window.define = function (id,factory) {
         var mod = modules[id] = {};
         mod.factory = factory;
     };
     window.define.amd = false;
     window.define.cmd = true;
-    */
+    /*
     seekjs.define = function (id,factory) {
         var mod = modules[id] = {};
         mod.factory = factory;
     };
     seekjs.define.amd = true;
     seekjs.define.cmd = true;
+    */
 
     //获取最后一个script对象
     var getLastScript = function () {

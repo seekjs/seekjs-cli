@@ -1,24 +1,31 @@
 /**
- * 文件合并
+ * 插件
  * Created by likaituan on 15/9/18.
  */
+var fs = require("fs");
+var pic = require("./pic");
+var {addExp} = require("./utils");
 
-(function(req, exp){
-    "use strict";
-    var fs = req("fs");
-    var js = req("./js");
-    var css = req("./css");
-    var view = req("./view");
+//获取JS代码
+exports.getJsCode = function(list){
+    var code = "";
+    list.forEach(function(item){
+        var mod = {};
+        mod.url = `${cfg.sysPath}/ui/${item.replace("sys.ui.","")}/ui.min.js`;
+        mod.code = fs.readFileSync(mod.url).toString();
+        addExp(mod, "cssFile", "none");
+        pic.findImage(mod);
+        code += mod.code;
+    });
+    return code;
+};
 
-    //解析命名空间
-    exp.getCode = function(item, path){
-        var o = {};
-        o.js = js.getJs(item, path + "/ui.min.js", function(code){
-            return view.addExp(code, "cssFile", '"none"');
-        });
-        //o.css = css.getCode(path + "/ui.css");
-        return o;
-    };
-
-
-})(require, exports);
+//获取CSS代码
+exports.getCssCode = function(list){
+    var code = "";
+    list.forEach(function(item){
+        var url = `${cfg.sysPath}/ui/${item.replace("sys.ui.","")}/ui.css`;
+        code += fs.readFileSync(url).toString();
+    });
+    return code;
+};

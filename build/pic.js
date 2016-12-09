@@ -3,66 +3,72 @@
  * Created by likaituan on 15/9/18.
  */
 
-(function(req, exp) {
-    "use strict";
-    var fs = req("fs");
+var fs = require("fs");
+var path = require("path");
+var {getResolveFile} = require("./utils");
 
-    //复制文件
-    var copyFile = function(source, destination){
-        var fileReadStream = fs.createReadStream(global.config.rootPath+"/"+source);
-        var fileWriteStream = fs.createWriteStream(global.config.output+"/"+destination);
+var allImages = {};
+var index = 0;
+
+//获取短路径
+var getShortImage = function (uri, referUrl) {
+    var fullImage = getResolveFile(uri, referUrl);
+    var sn = allImages[fullImage];
+    if(!sn) {
+        sn = allImages[fullImage] = ++index + path.parse(fullImage).ext;
+        imgList.push({sn:sn, url:fullImage});
+    }
+    return sn;
+};
+
+//查找图片
+exports.findImage = function(mod){
+    var url = mod.url;
+    if(/\.html$/i.test(url)){
+        mod.code = mod.code.replace(/src\s*=\s*\"(.+?)\"/ig, function(_,img){
+            if(/\{.+?\}/.test(_)){
+                return _;
+            }
+            return 'src="' + getShortImage(img,url) + '"';
+        });
+    }else if(/\.css$/i.test(url)){
+        mod.code = mod.code.replace(/url\s*\([\"\']?(.+?)[\"\']?\)\s*/ig, function(_,img){
+            return "url(" + getShortImage(img,url) + ")";
+        });
+    }else{
+        mod.code = mod.code.replace(/(?:module|mod)\.resolve\(\"(.+\.(?:gif|jpg|png))\"\)/g, function(_,img){
+            return `"${getShortImage(img,url)}"`;
+        });
+    }
+};
+
+//拷贝图片
+exports.copyImage = function(){
+    imgList.forEach(function(mod){
+        var fileReadStream = fs.createReadStream(mod.url);
+        var fileWriteStream = fs.createWriteStream(`${cfg.dist}/${mod.sn}`);
         fileReadStream.pipe(fileWriteStream);
-    };
+    });
+};
 
-    //获取绝对路径
-    var resolve = function(uri, referPath){
-        //当前路径
-        if (/^\.\//.test(uri)) {
-            return referPath + uri.replace("./", "");
-        }
-        //上层路径
-        else if (/^\.\.\//.test(uri)) {
-            var newUri = uri.replace(/\.\.\//g, function () {
-                referPath = referPath.replace(/\w+\/$/, "");
-                return "";
-            });
-            return referPath + newUri;
-        }
-        //绝对路径
-        else if (/^\//.test(uri)) {
-            return uri;
-        }
-        return referPath + uri;
-    };
+//图片转base64
+exports.pic2base64 = function(path){
+    var startTime = Date.now();
 
-    //初始化
-    exp.init = function(){
-        exp.useCount = 0;
-        exp.totalCount = 0;
-        exp.shortImgs = {};
-        exp.useImgs = {};
-    };
-
-    //复制使用到的图片
-    exp.copyUseImg = function(){
-        for(var file in exp.useImgs){
-            exp.useCount++;
-            copyFile(file, exp.useImgs[file]);
+    var o = {};
+    var id = 'sys.ui.'+path+'.pic';
+    path = "public/seekjs/ui/"+path+"/";
+    var data = fs.readdirSync(path);
+    data.forEach(function (fileName) {
+        if(/^(\w+)\.(gif|jpg|png|bmp)$/.test(fileName)){
+            var imageBuf = fs.readFileSync(path+fileName);
+            o[RegExp.$1] = "data:image/"+RegExp.$2+";base64,"+imageBuf.toString("base64")+"==";
         }
-        console.log("useImgCount/totalImgCount: "+ exp.useCount+ "/"+exp.totalCount);
-    };
+    });
+    var code = 'define("'+id+'", '+JSON.stringify(o)+');';
+    fs.writeFileSync(path+"pic.js", code);
 
-    //获取短路径
-    exp.getShortImg = function(sourceImage, referPath){
-        referPath = referPath.replace(global.config.rootPath, "").replace(/[^\/]+$/,"");
-        var resolveImage = resolve(sourceImage, referPath);
-        var sortImage = exp.shortImgs[resolveImage];
-        if(sortImage){
-            exp.useImgs[resolveImage] = sortImage;
-            return sortImage + "?" + global.config.version;
-        }
-        console.log({sourceImage:sourceImage, referPath:referPath, resolveImage:resolveImage, sortImage:sortImage});
-        throw "img [ " + sourceImage + " ] is not found in file [ " + referPath + " ]";
-    };
-
-})(require, exports);
+    var endTime = Date.now();
+    var time = endTime - startTime;
+    console.log("merge complete, use time "+time+"ms");
+};
