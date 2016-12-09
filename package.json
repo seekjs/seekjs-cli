@@ -11,6 +11,7 @@
     "email": "61114579@qq.com"
   },
   "dependencies": {
-    "ifun": "latest"
+    "ifun": "latest",
+    "uglify-js": "2.7.4"
   }
 }
