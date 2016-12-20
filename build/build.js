@@ -133,7 +133,7 @@ var chkDist = function () {
     if (fs.existsSync(cfg.dist)) {
         fs2.rmdir(cfg.dist);
     }
-    fs.mkdir(cfg.dist);
+    fs.mkdirSync(cfg.dist);
     return true;
 };
 
