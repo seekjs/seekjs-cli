@@ -1,7 +1,11 @@
 {
-  "name": "seek-cli",
+  "name": "seekjs-cli",
   "version": "0.4.10",
   "description": "seekJs的命令行工具",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:seekjs/seekjs-cli.git"
+  },
   "bin": {
     "seek": "./bin/cli.js"
   },
